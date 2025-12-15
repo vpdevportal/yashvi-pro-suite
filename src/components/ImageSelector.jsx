@@ -34,9 +34,9 @@ const ImageSelector = ({
   };
 
   return (
-    <div className="section">
-      <h2>Select Images</h2>
-      <div style={{ display: 'flex', gap: '12px', marginBottom: images.length > 0 ? '15px' : '0' }}>
+    <div className="image-selector-container">
+      {/* Fixed Toolbar */}
+      <div className="image-toolbar">
         <button 
           className="btn btn-primary" 
           onClick={onSelectImages}
@@ -82,11 +82,13 @@ const ImageSelector = ({
         )}
       </div>
       {processing && (
-        <div className="progress-bar-container" style={{ marginTop: '15px' }}>
+        <div className="progress-bar-container progress-bar-fixed">
           <div className="progress-bar" style={{ width: `${progress}%` }}></div>
         </div>
       )}
-      {images.length > 0 && (
+      {/* Content Area */}
+      <div className="image-content">
+        {images.length > 0 && (
         <div 
           className="thumbnail-grid"
           style={{ 
@@ -122,7 +124,8 @@ const ImageSelector = ({
             );
           })}
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
