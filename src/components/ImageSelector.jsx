@@ -3,11 +3,16 @@ import './ImageSelector.css';
 
 const ImageSelector = ({ 
   images, 
-  imageThumbs, 
+  imageThumbs,
+  watermarkedPreviews,
   loadingThumbnails,
+  logo,
   onSelectImages, 
-  onClearAllImages, 
-  processing 
+  onClearAllImages,
+  onProcess,
+  processing,
+  progress,
+  processDisabled
 }) => {
   const [thumbnailSize, setThumbnailSize] = useState(() => {
     // Load from localStorage or default to 80px
@@ -65,9 +70,22 @@ const ImageSelector = ({
             >
               Clear All
             </button>
+            <button 
+              className="btn btn-process" 
+              onClick={onProcess}
+              disabled={processDisabled}
+              style={{ minWidth: '140px' }}
+            >
+              {processing ? 'Processing...' : 'Process Images'}
+            </button>
           </>
         )}
       </div>
+      {processing && (
+        <div className="progress-bar-container" style={{ marginTop: '15px' }}>
+          <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+        </div>
+      )}
       {images.length > 0 && (
         <div 
           className="thumbnail-grid"
@@ -77,7 +95,10 @@ const ImageSelector = ({
         >
           {images.map((img, idx) => {
             const thumbnail = imageThumbs[img];
+            const watermarkedPreview = watermarkedPreviews?.[img];
             const isLoading = !thumbnail && loadingThumbnails;
+            // Use watermarked preview if logo is selected, otherwise use original thumbnail
+            const displayImage = (logo && watermarkedPreview) ? watermarkedPreview : thumbnail;
             
             return (
               <div key={idx} className="thumbnail-item">
@@ -89,7 +110,7 @@ const ImageSelector = ({
                 ) : (
                   <img
                     className="thumbnail-image"
-                    src={thumbnail || ''}
+                    src={displayImage || ''}
                     alt={img.split(/[/\\]/).pop()}
                     onError={(e) => {
                       e.target.style.display = 'none';

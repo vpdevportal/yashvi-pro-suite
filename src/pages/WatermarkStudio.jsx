@@ -4,7 +4,6 @@ import WatermarkOptions from '../components/WatermarkOptions';
 import LogoSelector from '../components/LogoSelector';
 import OutputFolderSelector from '../components/OutputFolderSelector';
 import ImageSelector from '../components/ImageSelector';
-import ProcessButton from '../components/ProcessButton';
 import './WatermarkStudio.css';
 
 const WatermarkStudio = () => {
@@ -12,6 +11,7 @@ const WatermarkStudio = () => {
     images,
     logo,
     imageThumbs,
+    watermarkedPreviews,
     loadingThumbnails,
     logoThumb,
     builtInLogos,
@@ -59,17 +59,15 @@ const WatermarkStudio = () => {
         <ImageSelector
           images={images}
           imageThumbs={imageThumbs}
+          watermarkedPreviews={watermarkedPreviews}
           loadingThumbnails={loadingThumbnails}
+          logo={logo}
           onSelectImages={handleSelectImages}
           onClearAllImages={handleClearAllImages}
-          processing={processing}
-        />
-
-        <ProcessButton
+          onProcess={handleProcessBatch}
           processing={processing}
           progress={progress}
-          onProcess={handleProcessBatch}
-          disabled={processing || !images.length || !logo || !outputFolder}
+          processDisabled={processing || !images.length || !logo || !outputFolder}
         />
       </div>
     </div>

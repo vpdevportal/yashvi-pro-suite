@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DEFAULT_WATERMARK_OPTIONS } from '../constants/watermarkOptions';
 import { isElectron, requireElectron } from '../utils/electron';
+import { generateWatermarkedPreview } from '../utils/watermarkPreview';
 
 /**
  * Custom hook for watermark state and operations
@@ -9,6 +10,7 @@ export const useWatermark = () => {
   const [images, setImages] = useState([]);
   const [logo, setLogo] = useState(null);
   const [imageThumbs, setImageThumbs] = useState({});
+  const [watermarkedPreviews, setWatermarkedPreviews] = useState({});
   const [loadingThumbnails, setLoadingThumbnails] = useState(false);
   const [logoThumb, setLogoThumb] = useState(null);
   const [builtInLogos, setBuiltInLogos] = useState([]);
@@ -174,11 +176,47 @@ export const useWatermark = () => {
     })();
   }, []);
 
+  // Generate watermarked previews when logo, options, or thumbnails change
+  useEffect(() => {
+    if (!logo || !logoThumb || images.length === 0 || Object.keys(imageThumbs).length === 0) {
+      setWatermarkedPreviews({});
+      return;
+    }
+
+    const generatePreviews = async () => {
+      const newPreviews = {};
+      
+      for (const imagePath of images) {
+        const thumbnail = imageThumbs[imagePath];
+        if (thumbnail) {
+          try {
+            const preview = await generateWatermarkedPreview(thumbnail, logoThumb, options);
+            newPreviews[imagePath] = preview;
+          } catch (error) {
+            console.error('Failed to generate watermarked preview:', error);
+            // Fallback to original thumbnail
+            newPreviews[imagePath] = thumbnail;
+          }
+        }
+      }
+      
+      setWatermarkedPreviews(newPreviews);
+    };
+
+    // Use a small timeout to debounce rapid option changes (especially from sliders)
+    const timeoutId = setTimeout(() => {
+      generatePreviews();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [logo, logoThumb, options.position, options.logoSize, options.opacity, options.margin, images, imageThumbs]);
+
   return {
     // State
     images,
     logo,
     imageThumbs,
+    watermarkedPreviews,
     loadingThumbnails,
     logoThumb,
     builtInLogos,
