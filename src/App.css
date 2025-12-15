@@ -347,11 +347,9 @@
 .btn-process {
   background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
   color: white;
-  width: 100%;
-  padding: 16px;
-  font-size: 1.2em;
-  margin-top: 20px;
-  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+  padding: 12px 24px;
+  font-size: 1em;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
 }
 
 .btn-process:hover:not(:disabled) {
