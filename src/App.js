@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'watermark'
   const [images, setImages] = useState([]);
   const [logo, setLogo] = useState(null);
   const [imageThumbs, setImageThumbs] = useState({});
@@ -167,28 +168,50 @@ function App() {
     }
   };
 
-  return (
-    <div className="App">
-      <div className="container">
-        <header className="header">
-          <h1>🖼️ Batch Watermark Tool</h1>
-          <p>Add your logo to multiple images at once</p>
+  const renderHome = () => (
+    <div className="home">
+      <section className="hero">
+        <div className="hero-text">
+          <h1>Yashvi Pro Suite</h1>
+          <p>
+            A beautiful desktop toolkit for creators. Start with effortless batch watermarking,
+            powered by your brand.
+          </p>
+          <div className="hero-actions">
+            <button
+              className="btn btn-primary"
+              onClick={() => setCurrentPage('watermark')}
+            >
+              Open Watermark Studio
+            </button>
+          </div>
           {!isElectron() && (
-            <div style={{ 
-              marginTop: '15px', 
-              padding: '10px', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              borderRadius: '5px',
-              fontSize: '0.9em'
-            }}>
-              ⚠️ Please run this app in Electron using "npm run dev" or "npm start"
-            </div>
+            <p className="hero-note">
+              ⚠️ Please run this app in Electron using <code>npm run dev</code> or <code>npm start</code>.
+            </p>
           )}
-        </header>
+        </div>
+      </section>
+      <section className="home-section">
+        <h2>What you can do</h2>
+        <div className="home-grid">
+          <div className="home-card">
+            <h3>Batch Watermarking</h3>
+            <p>Apply your logo to dozens of photos in one go, with full control over size, position, and opacity.</p>
+          </div>
+          <div className="home-card">
+            <h3>Brand‑ready Output</h3>
+            <p>Keep your original formats and get clean, consistent watermarked images for social, web, and print.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 
-        <div className="main-content">
-          {/* Images Section */}
-          <div className="section">
+  const renderWatermarkTool = () => (
+    <>
+      {/* Images Section */}
+      <div className="section">
             <h2>Select Images</h2>
             <button 
               className="btn btn-primary" 
@@ -212,10 +235,10 @@ function App() {
                 </div>
               </>
             )}
-          </div>
+      </div>
 
-          {/* Logo, Output, and Options in one row */}
-          <div className="section-row">
+      {/* Logo, Output, and Options in one row */}
+      <div className="section-row">
             {/* Logo Section */}
             <div className="section section-inline">
               <h2>Select Logo</h2>
@@ -348,8 +371,8 @@ function App() {
             </div>
           </div>
 
-          {/* Process Button */}
-          <div className="section">
+      {/* Process Button */}
+      <div className="section">
             <button 
               className="btn btn-process" 
               onClick={handleProcessBatch}
@@ -364,7 +387,46 @@ function App() {
               </div>
             )}
           </div>
+        </>
+  );
+
+  return (
+    <div className="App">
+      <nav className="top-nav">
+        <div className="nav-brand" onClick={() => setCurrentPage('home')}>
+          <img 
+            src="/assets/yashvi-logo.png" 
+            alt="Yashvi Logo" 
+            className="nav-logo-img"
+          />
+          <span>Yashvi Pro Suite</span>
         </div>
+        <div className="nav-links">
+          <button
+            className={`nav-link ${currentPage === 'home' ? 'nav-link-active' : ''}`}
+            onClick={() => setCurrentPage('home')}
+          >
+            Home
+          </button>
+          <button
+            className={`nav-link ${currentPage === 'watermark' ? 'nav-link-active' : ''}`}
+            onClick={() => setCurrentPage('watermark')}
+          >
+            Watermark Studio
+          </button>
+        </div>
+      </nav>
+
+      <div className="container">
+        {currentPage === 'home' ? (
+          <div className="main-content main-content-home">
+            {renderHome()}
+          </div>
+        ) : (
+          <div className="main-content">
+            {renderWatermarkTool()}
+          </div>
+        )}
       </div>
     </div>
   );

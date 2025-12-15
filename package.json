@@ -1,7 +1,7 @@
 {
-  "name": "watermark-app",
+  "name": "yashvi-pro-suite",
   "version": "1.0.0",
-  "description": "Batch watermark images with logo",
+  "description": "Yashvi Pro Suite - Batch watermark images with logo",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

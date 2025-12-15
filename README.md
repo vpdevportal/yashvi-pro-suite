@@ -1,4 +1,4 @@
-# Batch Watermark Tool
+# Yashvi Pro Suite
 
 A desktop application built with Electron, React, and Sharp for batch watermarking images with a logo.
 
