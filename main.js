@@ -207,7 +207,8 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
 }
 
 // Helper to generate a small thumbnail as a data URL for previews
-async function getThumbnailDataUrl(filePath, maxSize = 200, preserveAlpha = false) {
+// Increased default size to 500px to support zooming up to 400px with good quality
+async function getThumbnailDataUrl(filePath, maxSize = 500, preserveAlpha = false) {
   const image = sharp(filePath).rotate(); // Auto-rotate based on EXIF orientation
   const metadata = await image.metadata();
 
@@ -268,7 +269,7 @@ ipcMain.handle('process-batch', async (event, { imagePaths, logoPath, outputFold
 // IPC for thumbnails (used by React UI to preview local files)
 ipcMain.handle('get-image-thumbnail', async (event, filePath) => {
   try {
-    return await getThumbnailDataUrl(filePath, 200, false);
+    return await getThumbnailDataUrl(filePath, 500, false);
   } catch (error) {
     return null;
   }
