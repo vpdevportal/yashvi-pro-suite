@@ -75,8 +75,11 @@ ipcMain.handle('select-output-folder', async () => {
 // Helper function to add watermark
 async function addWatermarkToImage({ imagePath, logoPath, outputPath, options }) {
   try {
-    const image = sharp(imagePath);
+    // Auto-rotate based on EXIF orientation - Sharp's rotate() without angle auto-rotates
+    const image = sharp(imagePath).rotate();
     const logo = sharp(logoPath);
+    
+    // Get metadata after rotation to get correct dimensions
     const imageMetadata = await image.metadata();
     
     // Calculate logo size (percentage of image dimensions)
@@ -205,7 +208,7 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
 
 // Helper to generate a small thumbnail as a data URL for previews
 async function getThumbnailDataUrl(filePath, maxSize = 200, preserveAlpha = false) {
-  const image = sharp(filePath);
+  const image = sharp(filePath).rotate(); // Auto-rotate based on EXIF orientation
   const metadata = await image.metadata();
 
   const width = metadata.width || maxSize;
