@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './ImageSelector.css';
 
 const ImageSelector = ({ 
@@ -9,6 +9,25 @@ const ImageSelector = ({
   onClearAllImages, 
   processing 
 }) => {
+  const [thumbnailSize, setThumbnailSize] = useState(() => {
+    // Load from localStorage or default to 80px
+    const saved = localStorage.getItem('thumbnailSize');
+    return saved ? parseInt(saved, 10) : 80;
+  });
+
+  // Save to localStorage when size changes
+  useEffect(() => {
+    localStorage.setItem('thumbnailSize', thumbnailSize.toString());
+  }, [thumbnailSize]);
+
+  const handleZoomIn = () => {
+    setThumbnailSize(prev => Math.min(prev + 20, 400)); // Max 400px
+  };
+
+  const handleZoomOut = () => {
+    setThumbnailSize(prev => Math.max(prev - 20, 40)); // Min 40px
+  };
+
   return (
     <div className="section">
       <h2>Select Images</h2>
@@ -22,17 +41,40 @@ const ImageSelector = ({
           Choose Images ({images.length} selected)
         </button>
         {images.length > 0 && (
-          <button 
-            className="btn btn-secondary" 
-            onClick={onClearAllImages}
-            disabled={processing}
-          >
-            Clear All
-          </button>
+          <>
+            <button 
+              className="btn btn-zoom"
+              onClick={handleZoomOut}
+              disabled={processing || thumbnailSize <= 40}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <button 
+              className="btn btn-zoom"
+              onClick={handleZoomIn}
+              disabled={processing || thumbnailSize >= 400}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={onClearAllImages}
+              disabled={processing}
+            >
+              Clear All
+            </button>
+          </>
         )}
       </div>
       {images.length > 0 && (
-        <div className="thumbnail-grid">
+        <div 
+          className="thumbnail-grid"
+          style={{ 
+            gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize}px, 1fr))` 
+          }}
+        >
           {images.map((img, idx) => {
             const thumbnail = imageThumbs[img];
             const isLoading = !thumbnail && loadingThumbnails;
