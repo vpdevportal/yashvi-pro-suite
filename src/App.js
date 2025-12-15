@@ -3,6 +3,7 @@ import './App.css';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'watermark'
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [images, setImages] = useState([]);
   const [logo, setLogo] = useState(null);
   const [imageThumbs, setImageThumbs] = useState({});
@@ -43,6 +44,11 @@ function App() {
       );
       setImageThumbs(Object.fromEntries(thumbEntries));
     }
+  };
+
+  const handleClearAllImages = () => {
+    setImages([]);
+    setImageThumbs({});
   };
 
   const handleSelectLogo = async () => {
@@ -123,6 +129,7 @@ function App() {
       }
     })();
   }, []);
+
 
   const handleProcessBatch = async () => {
     if (!isElectron()) {
@@ -209,185 +216,200 @@ function App() {
   );
 
   const renderWatermarkTool = () => (
-    <>
-      {/* Images Section */}
-      <div className="section">
-            <h2>Select Images</h2>
+    <div className="watermark-layout">
+      {/* Left Panel - Watermark Options (Always Open) */}
+      <div className="options-panel">
+        <div className="options-section">
+          <h2>Watermark Options</h2>
+          
+          <div className="option-group">
+            <label>Position:</label>
+            <div className="position-cards">
+              {[
+                { value: 'top-left', label: 'Top Left' },
+                { value: 'top-right', label: 'Top Right' },
+                { value: 'center', label: 'Center' },
+                { value: 'bottom-left', label: 'Bottom Left' },
+                { value: 'bottom-right', label: 'Bottom Right' },
+              ].map((pos) => (
+                <button
+                  key={pos.value}
+                  type="button"
+                  data-position={pos.value}
+                  className={
+                    'position-card' +
+                    (options.position === pos.value ? ' position-card-active' : '')
+                  }
+                  onClick={() =>
+                    !processing && setOptions({ ...options, position: pos.value })
+                  }
+                  disabled={processing}
+                >
+                  {pos.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="option-group">
+            <label>Logo Size: {options.logoSize}%</label>
+            <input 
+              type="range" 
+              min="5" 
+              max="50" 
+              value={options.logoSize}
+              onChange={(e) => setOptions({...options, logoSize: parseInt(e.target.value)})}
+              disabled={processing}
+            />
+          </div>
+
+          <div className="option-group">
+            <label>Opacity: {options.opacity}%</label>
+            <input 
+              type="range" 
+              min="10" 
+              max="100" 
+              value={options.opacity}
+              onChange={(e) => setOptions({...options, opacity: parseInt(e.target.value)})}
+              disabled={processing}
+            />
+          </div>
+
+          <div className="option-group">
+            <label>Margin: {options.margin}%</label>
+            <input 
+              type="range" 
+              min="0" 
+              max="10" 
+              value={options.margin}
+              onChange={(e) => setOptions({...options, margin: parseInt(e.target.value)})}
+              disabled={processing}
+            />
+          </div>
+        </div>
+
+        {/* Logo Section */}
+        <div className="options-section">
+          <h2>Select Logo</h2>
+          
+          {/* Built-in logos grid */}
+          {builtInLogos.length > 0 && (
+            <div className="logo-grid">
+              {builtInLogos.map((builtInLogo, idx) => (
+                <div
+                  key={idx}
+                  className={`logo-card ${logo === builtInLogo.path ? 'logo-card-active' : ''}`}
+                  onClick={() => !processing && handleSelectBuiltInLogo(builtInLogo.path)}
+                >
+                  <img
+                    className="logo-card-image"
+                    src={builtInLogo.thumbnail || ''}
+                    alt={builtInLogo.name}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button 
+            className="btn btn-primary" 
+            onClick={handleSelectLogo}
+            disabled={processing}
+            style={{ marginTop: builtInLogos.length > 0 ? '15px' : '0', width: '100%' }}
+          >
+            Choose Custom Logo
+          </button>
+          {logo && (
+            <>
+              <div className="logo-preview">
+                <img
+                  className="logo-thumbnail-image"
+                  src={logoThumb || ''}
+                  alt={logo.split(/[/\\]/).pop()}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Output Folder Section */}
+        <div className="options-section">
+          <h2>Output Folder</h2>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleSelectOutputFolder}
+            disabled={processing}
+            style={{ width: '100%' }}
+          >
+            Choose Output Folder
+          </button>
+          {outputFolder && (
+            <div className="file-list">
+              <div className="file-item">✓ {outputFolder}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right Panel - Main Content */}
+      <div className="main-panel">
+        {/* Images Section */}
+        <div className="section">
+          <h2>Select Images</h2>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: images.length > 0 ? '15px' : '0' }}>
             <button 
               className="btn btn-primary" 
               onClick={handleSelectImages}
               disabled={processing}
+              style={{ flex: 1 }}
             >
               Choose Images ({images.length} selected)
             </button>
             {images.length > 0 && (
-              <>
-                <div className="thumbnail-grid">
-                  {images.map((img, idx) => (
-                    <div key={idx} className="thumbnail-item">
-                      <img
-                        className="thumbnail-image"
-                        src={imageThumbs[img] || ''}
-                        alt={img.split(/[/\\]/).pop()}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-      </div>
-
-      {/* Logo, Output, and Options in one row */}
-      <div className="section-row">
-            {/* Logo Section */}
-            <div className="section section-inline">
-              <h2>Select Logo</h2>
-              
-              {/* Built-in logos grid */}
-              {builtInLogos.length > 0 && (
-                <div className="logo-grid">
-                  {builtInLogos.map((builtInLogo, idx) => (
-                    <div
-                      key={idx}
-                      className={`logo-card ${logo === builtInLogo.path ? 'logo-card-active' : ''}`}
-                      onClick={() => !processing && handleSelectBuiltInLogo(builtInLogo.path)}
-                    >
-                      <img
-                        className="logo-card-image"
-                        src={builtInLogo.thumbnail || ''}
-                        alt={builtInLogo.name}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
               <button 
-                className="btn btn-primary" 
-                onClick={handleSelectLogo}
+                className="btn btn-secondary" 
+                onClick={handleClearAllImages}
                 disabled={processing}
-                style={{ marginTop: builtInLogos.length > 0 ? '15px' : '0' }}
               >
-                Choose Custom Logo
+                Clear All
               </button>
-              {logo && (
-                <>
-                  <div className="logo-preview">
+            )}
+          </div>
+          {images.length > 0 && (
+            <>
+              <div className="thumbnail-grid">
+                {images.map((img, idx) => (
+                  <div key={idx} className="thumbnail-item">
                     <img
-                      className="logo-thumbnail-image"
-                      src={logoThumb || ''}
-                      alt={logo.split(/[/\\]/).pop()}
+                      className="thumbnail-image"
+                      src={imageThumbs[img] || ''}
+                      alt={img.split(/[/\\]/).pop()}
                     />
                   </div>
-                </>
-              )}
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Process Button */}
+        <div className="section">
+          <button 
+            className="btn btn-process" 
+            onClick={handleProcessBatch}
+            disabled={processing || !images.length || !logo || !outputFolder}
+          >
+            {processing ? 'Processing...' : 'Process Images'}
+          </button>
+          
+          {processing && (
+            <div className="progress-bar-container">
+              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
             </div>
-
-            {/* Output Folder Section */}
-            <div className="section section-inline">
-              <h2>Output Folder</h2>
-              <button 
-                className="btn btn-primary" 
-                onClick={handleSelectOutputFolder}
-                disabled={processing}
-              >
-                Choose Output Folder
-              </button>
-              {outputFolder && (
-                <div className="file-list">
-                  <div className="file-item">✓ {outputFolder}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Options Section */}
-            <div className="section options-section section-inline">
-              <h2>Watermark Options</h2>
-              
-              <div className="option-group">
-                <label>Position:</label>
-                <div className="position-cards">
-                  {[
-                    { value: 'top-left', label: 'Top Left' },
-                    { value: 'top-right', label: 'Top Right' },
-                    { value: 'center', label: 'Center' },
-                    { value: 'bottom-left', label: 'Bottom Left' },
-                    { value: 'bottom-right', label: 'Bottom Right' },
-                  ].map((pos) => (
-                    <button
-                      key={pos.value}
-                      type="button"
-                      data-position={pos.value}
-                      className={
-                        'position-card' +
-                        (options.position === pos.value ? ' position-card-active' : '')
-                      }
-                      onClick={() =>
-                        !processing && setOptions({ ...options, position: pos.value })
-                      }
-                      disabled={processing}
-                    >
-                      {pos.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="option-group">
-                <label>Logo Size: {options.logoSize}%</label>
-                <input 
-                  type="range" 
-                  min="5" 
-                  max="50" 
-                  value={options.logoSize}
-                  onChange={(e) => setOptions({...options, logoSize: parseInt(e.target.value)})}
-                  disabled={processing}
-                />
-              </div>
-
-              <div className="option-group">
-                <label>Opacity: {options.opacity}%</label>
-                <input 
-                  type="range" 
-                  min="10" 
-                  max="100" 
-                  value={options.opacity}
-                  onChange={(e) => setOptions({...options, opacity: parseInt(e.target.value)})}
-                  disabled={processing}
-                />
-              </div>
-
-              <div className="option-group">
-                <label>Margin: {options.margin}%</label>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="10" 
-                  value={options.margin}
-                  onChange={(e) => setOptions({...options, margin: parseInt(e.target.value)})}
-                  disabled={processing}
-                />
-              </div>
-            </div>
-          </div>
-
-      {/* Process Button */}
-      <div className="section">
-            <button 
-              className="btn btn-process" 
-              onClick={handleProcessBatch}
-              disabled={processing || !images.length || !logo || !outputFolder}
-            >
-              {processing ? 'Processing...' : 'Process Images'}
-            </button>
-            
-            {processing && (
-              <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-              </div>
-            )}
-          </div>
-        </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -423,9 +445,7 @@ function App() {
             {renderHome()}
           </div>
         ) : (
-          <div className="main-content">
-            {renderWatermarkTool()}
-          </div>
+          renderWatermarkTool()
         )}
       </div>
     </div>
