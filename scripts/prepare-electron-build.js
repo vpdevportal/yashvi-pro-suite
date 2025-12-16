@@ -62,7 +62,8 @@ const buildPackageJson = {
   main: 'electron.js',
   dependencies: {
     sharp: packageJson.dependencies.sharp
-  }
+  },
+  optionalDependencies: packageJson.optionalDependencies || {}
 };
 
 fs.writeFileSync(
