@@ -11,11 +11,11 @@ const OutputFolderSelector = ({ outputFolder, onSelectOutputFolder, processing }
         disabled={processing}
         style={{ width: '100%' }}
       >
-        Choose Output Folder
+        Output Folder
       </button>
       {outputFolder && (
         <div className="file-list">
-          <div className="file-item">✓ {outputFolder}</div>
+          <div className="file-item">✓ {outputFolder.replace(/^\/Users\/[^\/]+/, '~')}</div>
         </div>
       )}
     </div>

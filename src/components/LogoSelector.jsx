@@ -38,7 +38,7 @@ const LogoSelector = ({
         disabled={processing}
         style={{ marginTop: builtInLogos.length > 0 ? '15px' : '0', width: '100%' }}
       >
-        Choose Custom Logo
+        Custom Logo
       </button>
       {logo && (
         <div className="logo-preview">
