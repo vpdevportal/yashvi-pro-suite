@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Yashvi Pro Suite - Batch watermark images with logo",
   "productName": "Yashvi Pro Suite",
+  "homepage": "./",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -67,12 +68,16 @@
       "build/asset-manifest.json",
       "build/assets/**/*",
       "resources/**/*",
-      "node_modules/sharp/**/*",
       "node_modules/**/*",
       "!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!node_modules/**/{test,__tests__,tests,powered-test,example,examples}",
       "!node_modules/**/*.d.ts",
       "!node_modules/**/*.map"
+    ],
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*",
+      "resources/**/*"
     ],
     "directories": {
       "output": "dist"

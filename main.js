@@ -24,11 +24,25 @@ function createWindow() {
   // Set app icon - use .icns for macOS if available, otherwise PNG
   let iconPath;
   if (process.platform === 'darwin') {
-    // Try .icns first for macOS, fallback to PNG
-    const icnsPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.icns');
-    if (fs.existsSync(icnsPath)) {
-      iconPath = icnsPath;
-    } else {
+    // Try multiple possible locations for the icon
+    const possiblePaths = [
+      path.join(__dirname, 'public', 'assets', 'yashvi-logo.icns'),
+      path.join(__dirname, 'public', 'assets', 'yashvi-logo.png'),
+      path.join(__dirname, 'assets', 'yashvi-logo.png'),
+      path.join(__dirname, 'resources', 'logos', 'yashvi-logo.png'),
+      path.join(app.getAppPath(), 'public', 'assets', 'yashvi-logo.png'),
+      path.join(app.getAppPath(), 'assets', 'yashvi-logo.png'),
+    ];
+    
+    for (const possiblePath of possiblePaths) {
+      if (fs.existsSync(possiblePath)) {
+        iconPath = possiblePath;
+        break;
+      }
+    }
+    
+    // Fallback to default if nothing found
+    if (!iconPath) {
       iconPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.png');
     }
   } else {
@@ -53,7 +67,39 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:3000');
     // DevTools can be opened manually with Cmd+Option+I (Mac) or Ctrl+Shift+I (Windows/Linux)
   } else {
-    mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
+    // In packaged app, __dirname points to build/ directory inside asar
+    // So index.html is at the same level as electron.js
+    const indexPath = path.join(__dirname, 'index.html');
+    
+    console.log('Loading index.html from:', indexPath);
+    console.log('__dirname:', __dirname);
+    console.log('app.getAppPath():', app.getAppPath());
+    
+    // Add error handling
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Failed to load:', errorCode, errorDescription);
+      console.error('URL:', validatedURL);
+    });
+    
+    mainWindow.webContents.on('dom-ready', () => {
+      console.log('DOM ready');
+    });
+    
+    // Listen for console messages to debug
+    mainWindow.webContents.on('console-message', (event, level, message) => {
+      console.log(`[Renderer ${level}]:`, message);
+    });
+    
+    // Use loadFile which handles file:// protocol correctly
+    // With homepage: "./" in package.json, React will use relative paths
+    mainWindow.loadFile(indexPath).catch((error) => {
+      console.error('Error loading file:', error);
+      // Fallback: try with file:// URL
+      const fileUrl = `file://${indexPath}`;
+      mainWindow.loadURL(fileUrl).catch((err) => {
+        console.error('Failed to load URL:', err);
+      });
+    });
   }
 
   mainWindow.on('closed', () => {
@@ -207,30 +253,11 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
       .toBuffer();
     }
     
-    // Composite logo onto image (with subtle shadow under the logo for better visibility)
+    // Composite logo onto image
     const outputFormat = path.extname(outputPath).toLowerCase();
     
-    // Create a shadow using the logo's alpha so the background stays transparent
-    const shadowOffset = Math.floor(Math.min(imageMetadata.width, imageMetadata.height) * 0.005); // 0.5% of min dimension
-    const blurRadius = Math.max(2, Math.floor(Math.min(imageMetadata.width, imageMetadata.height) * 0.005));
-
-    const shadowBuffer = await sharp(logoBuffer)
-      .ensureAlpha()
-      .modulate({ brightness: 0 }) // make it black but keep alpha (shape of logo only)
-      .blur(blurRadius)
-      .toBuffer();
-
     let outputPipeline = image.composite([
       {
-        // shadow slightly down/right, lower opacity
-        input: shadowBuffer,
-        top: Math.max(0, top + shadowOffset),
-        left: Math.max(0, left + shadowOffset),
-        blend: 'over',
-        opacity: 0.4
-      },
-      {
-        // real logo on top
         input: logoBuffer,
         top: Math.max(0, top),
         left: Math.max(0, left),
@@ -362,13 +389,16 @@ ipcMain.handle('get-built-in-logos', async () => {
   try {
     // Try multiple possible locations for the logos directory
     // In development: __dirname is the project root
-    // In production: __dirname is inside the app.asar or app.asar.unpacked
+    // In production: __dirname is inside the app.asar at /build/
+    // Resources folder is unpacked to app.asar.unpacked/resources/logos
     const possiblePaths = [
+      path.join(process.resourcesPath, 'app.asar.unpacked', 'resources', 'logos'), // Production: unpacked location (PRIORITY)
+      path.join(process.resourcesPath, 'resources', 'logos'), // Production: alternative unpacked location
+      path.join(__dirname, '..', 'resources', 'logos'), // Production: inside asar (may not work with Sharp)
       path.join(__dirname, 'resources', 'logos'), // Development (project root)
       path.join(__dirname, 'build', 'resources', 'logos'), // Development (from build)
-      path.join(process.resourcesPath, 'resources', 'logos'), // Production (outside asar)
-      path.join(app.getAppPath(), 'resources', 'logos'), // Alternative production path
-      path.join(app.getAppPath(), 'build', 'resources', 'logos'), // Production (from build)
+      path.join(app.getAppPath(), 'resources', 'logos'), // Production: asar root/resources/logos (may not work with Sharp)
+      path.join(app.getAppPath(), 'build', 'resources', 'logos'), // Production (from build, if resources copied there)
     ];
 
     let logosDir = null;
@@ -387,10 +417,14 @@ ipcMain.handle('get-built-in-logos', async () => {
     }
 
     if (!logosDir) {
-      console.log('No preset logos directory found. Users can still select custom logos.');
+      console.log('No preset logos directory found. Tried paths:', possiblePaths);
+      console.log('__dirname:', __dirname);
+      console.log('app.getAppPath():', app.getAppPath());
+      console.log('process.resourcesPath:', process.resourcesPath);
       return [];
     }
 
+    console.log(`Found logos directory at: ${logosDir}`);
     const entries = await fs.promises.readdir(logosDir);
     const imageFiles = entries.filter((file) =>
       file.match(/\.(png|jpe?g|webp|gif|svg)$/i)
@@ -401,14 +435,22 @@ ipcMain.handle('get-built-in-logos', async () => {
       return [];
     }
 
+    console.log(`Found ${imageFiles.length} logo file(s):`, imageFiles);
     const logos = [];
     for (const file of imageFiles) {
       const fullPath = path.join(logosDir, file);
       let thumbnail = null;
       try {
+        if (!fs.existsSync(fullPath)) {
+          console.warn(`Logo file does not exist: ${fullPath}`);
+          continue;
+        }
         thumbnail = await getThumbnailDataUrl(fullPath, 200, true);
+        if (!thumbnail) {
+          console.warn(`Failed to generate thumbnail for ${file}: thumbnail is null`);
+        }
       } catch (error) {
-        console.warn(`Failed to generate thumbnail for ${file}:`, error.message);
+        console.error(`Failed to generate thumbnail for ${file}:`, error.message);
         thumbnail = null;
       }
       logos.push({

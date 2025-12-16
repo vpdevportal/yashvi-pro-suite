@@ -6,7 +6,7 @@ const Navigation = ({ currentPage, onPageChange }) => {
     <nav className="top-nav">
       <div className="nav-brand" onClick={() => onPageChange('home')}>
         <img 
-          src="/assets/yashvi-logo.png" 
+          src="./assets/yashvi-logo.png" 
           alt="Yashvi Logo" 
           className="nav-logo-img"
         />
