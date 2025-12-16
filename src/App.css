@@ -457,6 +457,43 @@
   object-fit: contain;
 }
 
+.thumbnail-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.9);
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+}
+
+.thumbnail-item:hover .thumbnail-delete-btn {
+  opacity: 1;
+}
+
+.thumbnail-delete-btn:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
+}
+
+.thumbnail-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Thumbnail loading state */
 .thumbnail-loading {
   position: absolute;

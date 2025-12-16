@@ -12,6 +12,7 @@ const ImageSelector = ({
   options,
   onSelectImages, 
   onClearAllImages,
+  onRemoveImage,
   onProcess,
   processing,
   progress,
@@ -173,18 +174,34 @@ const ImageSelector = ({
                     <span>Loading...</span>
                   </div>
                 ) : (
-                  <img
-                    className="thumbnail-image"
-                    src={displayImage || ''}
-                    alt={img.split(/[/\\]/).pop()}
-                    onDoubleClick={() => handleImageDoubleClick(img, displayImage)}
-                    style={{ cursor: 'pointer' }}
-                    title="Double-click to preview"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<div class="thumbnail-error">Failed to load</div>';
-                    }}
-                  />
+                  <>
+                    <img
+                      className="thumbnail-image"
+                      src={displayImage || ''}
+                      alt={img.split(/[/\\]/).pop()}
+                      onDoubleClick={() => handleImageDoubleClick(img, displayImage)}
+                      style={{ cursor: 'pointer' }}
+                      title="Double-click to preview"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = '<div class="thumbnail-error">Failed to load</div>';
+                      }}
+                    />
+                    <button
+                      className="thumbnail-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!processing && onRemoveImage) {
+                          onRemoveImage(img);
+                        }
+                      }}
+                      disabled={processing}
+                      title="Delete image"
+                      aria-label="Delete image"
+                    >
+                      ×
+                    </button>
+                  </>
                 )}
               </div>
             );

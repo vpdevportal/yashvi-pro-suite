@@ -53,6 +53,22 @@ export const useWatermark = () => {
   const handleClearAllImages = () => {
     setImages([]);
     setImageThumbs({});
+    setWatermarkedPreviews({});
+  };
+
+  // Remove a single image
+  const handleRemoveImage = (imagePath) => {
+    setImages(prev => prev.filter(img => img !== imagePath));
+    setImageThumbs(prev => {
+      const newThumbs = { ...prev };
+      delete newThumbs[imagePath];
+      return newThumbs;
+    });
+    setWatermarkedPreviews(prev => {
+      const newPreviews = { ...prev };
+      delete newPreviews[imagePath];
+      return newPreviews;
+    });
   };
 
   // Select logo
@@ -228,6 +244,7 @@ export const useWatermark = () => {
     setOptions,
     handleSelectImages,
     handleClearAllImages,
+    handleRemoveImage,
     handleSelectLogo,
     handleSelectBuiltInLogo,
     handleSelectOutputFolder,

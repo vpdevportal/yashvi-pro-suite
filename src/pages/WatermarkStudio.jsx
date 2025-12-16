@@ -22,6 +22,7 @@ const WatermarkStudio = () => {
     setOptions,
     handleSelectImages,
     handleClearAllImages,
+    handleRemoveImage,
     handleSelectLogo,
     handleSelectBuiltInLogo,
     handleSelectOutputFolder,
@@ -66,6 +67,7 @@ const WatermarkStudio = () => {
           options={options}
           onSelectImages={handleSelectImages}
           onClearAllImages={handleClearAllImages}
+          onRemoveImage={handleRemoveImage}
           onProcess={handleProcessBatch}
           processing={processing}
           progress={progress}
