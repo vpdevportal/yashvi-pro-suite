@@ -15,7 +15,7 @@ const OutputFolderSelector = ({ outputFolder, onSelectOutputFolder, processing }
       </button>
       {outputFolder && (
         <div className="file-list">
-          <div className="file-item">✓ {outputFolder.replace(/^\/Users\/[^\/]+/, '~')}</div>
+          <div className="file-item">{outputFolder.replace(/^\/Users\/[^\/]+/, '~')}</div>
         </div>
       )}
     </div>
