@@ -66,6 +66,7 @@
       "build/index.html",
       "build/asset-manifest.json",
       "build/assets/**/*",
+      "resources/**/*",
       "node_modules/sharp/**/*",
       "node_modules/**/*",
       "!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",

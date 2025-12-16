@@ -18,6 +18,37 @@ fs.copyFileSync(
   path.join(buildDir, 'preload.js')
 );
 
+// Copy resources folder if it exists
+const resourcesSrc = path.join(projectRoot, 'resources');
+const resourcesDest = path.join(buildDir, 'resources');
+if (fs.existsSync(resourcesSrc)) {
+  // Create destination directory
+  if (!fs.existsSync(resourcesDest)) {
+    fs.mkdirSync(resourcesDest, { recursive: true });
+  }
+  
+  // Copy resources recursively
+  const copyRecursive = (src, dest) => {
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+      const srcPath = path.join(src, entry.name);
+      const destPath = path.join(dest, entry.name);
+      
+      if (entry.isDirectory()) {
+        if (!fs.existsSync(destPath)) {
+          fs.mkdirSync(destPath, { recursive: true });
+        }
+        copyRecursive(srcPath, destPath);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+    }
+  };
+  
+  copyRecursive(resourcesSrc, resourcesDest);
+  console.log('  ✓ Resources folder copied');
+}
+
 // Read and update package.json for build directory
 const packageJson = JSON.parse(
   fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
