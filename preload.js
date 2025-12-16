@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   processBatch: (data) => ipcRenderer.invoke('process-batch', data),
   getImageThumbnail: (filePath) => ipcRenderer.invoke('get-image-thumbnail', filePath),
   getLogoThumbnail: (filePath) => ipcRenderer.invoke('get-logo-thumbnail', filePath),
+  getFullImage: (filePath) => ipcRenderer.invoke('get-full-image', filePath),
   getDefaultOutputFolder: () => ipcRenderer.invoke('get-default-output-folder'),
   getBuiltInLogos: () => ipcRenderer.invoke('get-built-in-logos'),
   onBatchProgress: (callback) => {

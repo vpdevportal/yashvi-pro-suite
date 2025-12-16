@@ -337,6 +337,17 @@ ipcMain.handle('get-logo-thumbnail', async (event, filePath) => {
   }
 });
 
+// Get full quality image for modal preview (no resizing, or very large size)
+ipcMain.handle('get-full-image', async (event, filePath) => {
+  try {
+    // Use a very large maxSize (10000px) to effectively get full quality
+    // Sharp will only resize if the image is larger, so this preserves original quality
+    return await getThumbnailDataUrl(filePath, 10000, false);
+  } catch (error) {
+    return null;
+  }
+});
+
 // Default output folder (Downloads)
 ipcMain.handle('get-default-output-folder', async () => {
   try {
