@@ -62,6 +62,8 @@ const WatermarkStudio = () => {
           watermarkedPreviews={watermarkedPreviews}
           loadingThumbnails={loadingThumbnails}
           logo={logo}
+          logoThumb={logoThumb}
+          options={options}
           onSelectImages={handleSelectImages}
           onClearAllImages={handleClearAllImages}
           onProcess={handleProcessBatch}
