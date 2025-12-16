@@ -109,10 +109,13 @@ export const useWatermark = () => {
   };
 
   // Process batch
-  const handleProcessBatch = async () => {
+  const handleProcessBatch = async (selectedImagePaths = null) => {
     if (!requireElectron()) return;
     
-    if (!images.length || !logo || !outputFolder) {
+    // Use selected images if provided, otherwise use all images
+    const imagesToProcess = selectedImagePaths || images;
+    
+    if (!imagesToProcess.length || !logo || !outputFolder) {
       alert('Please select images, logo, and output folder');
       return;
     }
@@ -122,7 +125,7 @@ export const useWatermark = () => {
 
     try {
       const results = await window.electronAPI.processBatch({
-        imagePaths: images,
+        imagePaths: imagesToProcess,
         logoPath: logo,
         outputFolder: outputFolder,
         options: options

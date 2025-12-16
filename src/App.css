@@ -441,11 +441,22 @@
   transition: all 0.3s ease;
 }
 
+.thumbnail-item {
+  cursor: pointer;
+}
+
 .thumbnail-item:hover {
   box-shadow: 0 4px 16px rgba(147, 51, 234, 0.4);
   border-color: rgba(147, 51, 234, 0.3);
   transform: translateY(-2px);
   background: linear-gradient(135deg, #1f1f1f 0%, #1f0f24 50%, #1f1f1f 100%);
+}
+
+.thumbnail-selected {
+  border-color: #9333ea !important;
+  border-width: 2px !important;
+  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.6) !important;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(168, 85, 247, 0.15) 50%, rgba(147, 51, 234, 0.2) 100%) !important;
 }
 
 .thumbnail-image {
@@ -492,6 +503,19 @@
 .thumbnail-delete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.thumbnail-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  z-index: 15;
+  cursor: pointer;
+  accent-color: #9333ea;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Thumbnail loading state */

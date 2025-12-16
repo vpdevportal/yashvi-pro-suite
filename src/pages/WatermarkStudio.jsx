@@ -65,6 +65,7 @@ const WatermarkStudio = () => {
           logo={logo}
           logoThumb={logoThumb}
           options={options}
+          outputFolder={outputFolder}
           onSelectImages={handleSelectImages}
           onClearAllImages={handleClearAllImages}
           onRemoveImage={handleRemoveImage}

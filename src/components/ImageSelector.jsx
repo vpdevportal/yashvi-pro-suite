@@ -10,6 +10,7 @@ const ImageSelector = ({
   logo,
   logoThumb,
   options,
+  outputFolder,
   onSelectImages, 
   onClearAllImages,
   onRemoveImage,
@@ -27,6 +28,8 @@ const ImageSelector = ({
   const [modalImage, setModalImage] = useState(null);
   const [modalImagePath, setModalImagePath] = useState(null);
   const [loadingFullImage, setLoadingFullImage] = useState(false);
+  const [selectedImages, setSelectedImages] = useState(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
 
   // Save to localStorage when size changes
   useEffect(() => {
@@ -97,6 +100,91 @@ const ImageSelector = ({
     setModalImagePath(null);
   };
 
+  // Toggle image selection with shift+click support
+  const handleToggleImageSelection = (imgPath, currentIndex, event) => {
+    if (processing) return;
+    
+    // Check if Shift key is pressed for range selection
+    if (event && event.shiftKey && lastSelectedIndex !== null) {
+      const startIndex = Math.min(lastSelectedIndex, currentIndex);
+      const endIndex = Math.max(lastSelectedIndex, currentIndex);
+      
+      setSelectedImages(prev => {
+        const newSet = new Set(prev);
+        // Select all images in the range
+        for (let i = startIndex; i <= endIndex; i++) {
+          newSet.add(images[i]);
+        }
+        return newSet;
+      });
+      setLastSelectedIndex(currentIndex);
+    } else {
+      // Normal click - toggle single selection
+      setSelectedImages(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(imgPath)) {
+          newSet.delete(imgPath);
+          setLastSelectedIndex(null);
+        } else {
+          newSet.add(imgPath);
+          setLastSelectedIndex(currentIndex);
+        }
+        return newSet;
+      });
+    }
+  };
+
+  // Select all images
+  const handleSelectAll = () => {
+    if (processing) return;
+    setSelectedImages(new Set(images));
+  };
+
+  // Deselect all images
+  const handleDeselectAll = () => {
+    if (processing) return;
+    setSelectedImages(new Set());
+    setLastSelectedIndex(null);
+  };
+
+  // Delete selected images
+  const handleDeleteSelected = () => {
+    if (processing || selectedImages.size === 0 || !onRemoveImage) return;
+    selectedImages.forEach(imgPath => {
+      onRemoveImage(imgPath);
+    });
+    setSelectedImages(new Set());
+    setLastSelectedIndex(null);
+  };
+
+  // Process only selected images
+  const handleProcessSelected = () => {
+    if (selectedImages.size === 0) {
+      alert('Please select at least one image to process');
+      return;
+    }
+    if (onProcess) {
+      onProcess(Array.from(selectedImages));
+    }
+  };
+
+  // Update selected images when images array changes (remove deleted images from selection)
+  useEffect(() => {
+    setSelectedImages(prev => {
+      const newSet = new Set();
+      prev.forEach(img => {
+        if (images.includes(img)) {
+          newSet.add(img);
+        }
+      });
+      return newSet;
+    });
+    // Reset last selected index if the image at that index was removed
+    if (lastSelectedIndex !== null && lastSelectedIndex >= images.length) {
+      setLastSelectedIndex(null);
+    }
+  }, [images, lastSelectedIndex]);
+
   return (
     <div className="image-selector-container">
       {/* Fixed Toolbar */}
@@ -134,13 +222,34 @@ const ImageSelector = ({
             >
               Clear All
             </button>
+            {selectedImages.size > 0 && (
+              <>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={handleDeselectAll}
+                  disabled={processing}
+                  title="Deselect all images"
+                >
+                  Deselect All
+                </button>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={handleDeleteSelected}
+                  disabled={processing}
+                  style={{ background: 'rgba(220, 38, 38, 0.8)', borderColor: 'rgba(220, 38, 38, 0.6)' }}
+                  title={`Delete ${selectedImages.size} selected image(s)`}
+                >
+                  Delete ({selectedImages.size})
+                </button>
+              </>
+            )}
             <button 
               className="btn btn-process" 
-              onClick={onProcess}
-              disabled={processDisabled}
+              onClick={handleProcessSelected}
+              disabled={processing || selectedImages.size === 0 || !logo || !outputFolder}
               style={{ minWidth: '140px' }}
             >
-              {processing ? 'Processing...' : 'Process Images'}
+              {processing ? 'Processing...' : `Process (${selectedImages.size})`}
             </button>
           </>
         )}
@@ -166,8 +275,14 @@ const ImageSelector = ({
             // Use watermarked preview if logo is selected, otherwise use original thumbnail
             const displayImage = (logo && watermarkedPreview) ? watermarkedPreview : thumbnail;
             
+            const isSelected = selectedImages.has(img);
+            
             return (
-              <div key={idx} className="thumbnail-item">
+              <div 
+                key={idx} 
+                className={`thumbnail-item ${isSelected ? 'thumbnail-selected' : ''}`}
+                onClick={(e) => handleToggleImageSelection(img, idx, e)}
+              >
                 {isLoading ? (
                   <div className="thumbnail-loading">
                     <div className="thumbnail-spinner"></div>
@@ -179,9 +294,12 @@ const ImageSelector = ({
                       className="thumbnail-image"
                       src={displayImage || ''}
                       alt={img.split(/[/\\]/).pop()}
-                      onDoubleClick={() => handleImageDoubleClick(img, displayImage)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        handleImageDoubleClick(img, displayImage);
+                      }}
                       style={{ cursor: 'pointer' }}
-                      title="Double-click to preview"
+                      title="Click to select, double-click to preview"
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.parentElement.innerHTML = '<div class="thumbnail-error">Failed to load</div>';
