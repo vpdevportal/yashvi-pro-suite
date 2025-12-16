@@ -837,12 +837,13 @@
   transform: translateX(4px);
 }
 
-.options-panel .position-card-active {
-  background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5);
-  transform: translateX(0);
+.options-panel .position-card-active,
+.options-panel .position-card-active:hover {
+  background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5) !important;
+  transform: translateX(0) !important;
 }
 
 .position-card {
