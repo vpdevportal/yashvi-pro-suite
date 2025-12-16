@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run dev:react\" \"wait-on http://localhost:3000 && electron .\"",
     "dev:react": "react-scripts start",
     "build": "react-scripts build",
-    "build:electron": "electron-builder",
+    "build:electron": "npm run build && node scripts/prepare-electron-build.js && electron-builder",
     "electron": "electron ."
   },
   "keywords": ["watermark", "image", "batch"],
@@ -44,6 +44,7 @@
   "build": {
     "appId": "com.yashvi.prosuite",
     "productName": "Yashvi Pro Suite",
+    "extends": null,
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "public/assets/yashvi-logo.png",
@@ -58,7 +59,13 @@
       }
     },
     "files": [
-      "build/**/*",
+      "build/electron.js",
+      "build/preload.js",
+      "build/package.json",
+      "build/static/**/*",
+      "build/index.html",
+      "build/asset-manifest.json",
+      "build/assets/**/*",
       "node_modules/sharp/**/*",
       "node_modules/**/*",
       "!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",
@@ -67,8 +74,11 @@
       "!node_modules/**/*.map"
     ],
     "directories": {
-      "output": "dist",
-      "app": "build"
+      "output": "dist"
+    },
+    "asar": true,
+    "extraMetadata": {
+      "main": "build/electron.js"
     }
   }
 }
