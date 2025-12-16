@@ -182,18 +182,48 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
     const imageMetadata = await image.metadata();
     
     // Calculate logo size (percentage of image dimensions)
-    const logoWidth = Math.floor(imageMetadata.width * (options.logoSize / 100));
-    const logoHeight = Math.floor(imageMetadata.height * (options.logoSize / 100));
+    const targetLogoWidth = Math.floor(imageMetadata.width * (options.logoSize / 100));
+    const targetLogoHeight = Math.floor(imageMetadata.height * (options.logoSize / 100));
+    
+    // Get logo metadata to calculate aspect ratio
+    const logoMetadata = await logo.metadata();
+    const logoAspectRatio = logoMetadata.width / logoMetadata.height;
+    
+    // Calculate actual logo dimensions maintaining aspect ratio (matching preview logic)
+    let actualLogoWidth = targetLogoWidth;
+    let actualLogoHeight = targetLogoHeight;
+    
+    if (logoAspectRatio > 1) {
+      // Logo is wider - adjust height
+      actualLogoHeight = targetLogoWidth / logoAspectRatio;
+      if (actualLogoHeight > targetLogoHeight) {
+        actualLogoHeight = targetLogoHeight;
+        actualLogoWidth = targetLogoHeight * logoAspectRatio;
+      }
+    } else {
+      // Logo is taller - adjust width
+      actualLogoWidth = targetLogoHeight * logoAspectRatio;
+      if (actualLogoWidth > targetLogoWidth) {
+        actualLogoWidth = targetLogoWidth;
+        actualLogoHeight = targetLogoWidth / logoAspectRatio;
+      }
+    }
     
     // Resize logo maintaining aspect ratio
     const resizedLogo = await logo
-      .resize(logoWidth, logoHeight, {
+      .resize(Math.floor(actualLogoWidth), Math.floor(actualLogoHeight), {
         fit: 'inside',
         withoutEnlargement: true
       })
       .toBuffer();
     
-    // Calculate position
+    // Get actual dimensions after resize (Sharp might adjust slightly)
+    // This is critical for accurate margin calculation
+    const resizedLogoMetadata = await sharp(resizedLogo).metadata();
+    const finalLogoWidth = resizedLogoMetadata.width;
+    const finalLogoHeight = resizedLogoMetadata.height;
+    
+    // Calculate position using actual logo dimensions
     let top, left;
     const margin = Math.floor(Math.min(imageMetadata.width, imageMetadata.height) * (options.margin / 100));
     
@@ -202,21 +232,37 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
         top = margin;
         left = margin;
         break;
+      case 'top-center':
+        top = margin;
+        left = Math.floor((imageMetadata.width - finalLogoWidth) / 2);
+        break;
       case 'top-right':
         top = margin;
-        left = imageMetadata.width - logoWidth - margin;
+        left = imageMetadata.width - finalLogoWidth - margin;
         break;
-      case 'bottom-left':
-        top = imageMetadata.height - logoHeight - margin;
+      case 'center-left':
+        top = Math.floor((imageMetadata.height - finalLogoHeight) / 2);
         left = margin;
         break;
-      case 'bottom-right':
-        top = imageMetadata.height - logoHeight - margin;
-        left = imageMetadata.width - logoWidth - margin;
-        break;
       case 'center':
-        top = Math.floor((imageMetadata.height - logoHeight) / 2);
-        left = Math.floor((imageMetadata.width - logoWidth) / 2);
+        top = Math.floor((imageMetadata.height - finalLogoHeight) / 2);
+        left = Math.floor((imageMetadata.width - finalLogoWidth) / 2);
+        break;
+      case 'center-right':
+        top = Math.floor((imageMetadata.height - finalLogoHeight) / 2);
+        left = imageMetadata.width - finalLogoWidth - margin;
+        break;
+      case 'bottom-left':
+        top = imageMetadata.height - finalLogoHeight - margin;
+        left = margin;
+        break;
+      case 'bottom-center':
+        top = imageMetadata.height - finalLogoHeight - margin;
+        left = Math.floor((imageMetadata.width - finalLogoWidth) / 2);
+        break;
+      case 'bottom-right':
+        top = imageMetadata.height - finalLogoHeight - margin;
+        left = imageMetadata.width - finalLogoWidth - margin;
         break;
       default:
         top = margin;
@@ -255,7 +301,7 @@ async function addWatermarkToImage({ imagePath, logoPath, outputPath, options })
     
     // Composite logo onto image
     const outputFormat = path.extname(outputPath).toLowerCase();
-    
+
     let outputPipeline = image.composite([
       {
         input: logoBuffer,
