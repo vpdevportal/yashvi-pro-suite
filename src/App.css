@@ -896,7 +896,7 @@
   background: linear-gradient(135deg, #0a0a0a 0%, #0a050f 50%, #0a0a0a 100%);
   color: #ffffff;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 0.9rem;
   font-weight: 500;
   text-align: center;
   transition: all 0.2s ease;
@@ -924,11 +924,11 @@
 @media (min-width: 768px) {
   .position-cards {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
-      "top-left top-right"
-      "center center"
-      "bottom-left bottom-right";
+      "top-left top-center top-right"
+      "center-left center center-right"
+      "bottom-left bottom-center bottom-right";
     gap: 8px;
   }
 
@@ -940,16 +940,32 @@
     grid-area: top-left;
   }
 
+  .position-card[data-position="top-center"] {
+    grid-area: top-center;
+  }
+
   .position-card[data-position="top-right"] {
     grid-area: top-right;
+  }
+
+  .position-card[data-position="center-left"] {
+    grid-area: center-left;
   }
 
   .position-card[data-position="center"] {
     grid-area: center;
   }
 
+  .position-card[data-position="center-right"] {
+    grid-area: center-right;
+  }
+
   .position-card[data-position="bottom-left"] {
     grid-area: bottom-left;
+  }
+
+  .position-card[data-position="bottom-center"] {
+    grid-area: bottom-center;
   }
 
   .position-card[data-position="bottom-right"] {

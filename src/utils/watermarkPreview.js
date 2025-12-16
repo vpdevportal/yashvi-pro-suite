@@ -14,21 +14,37 @@ const calculateLogoPosition = (imageWidth, imageHeight, logoWidth, logoHeight, o
       top = margin;
       left = margin;
       break;
+    case 'top-center':
+      top = margin;
+      left = (imageWidth - logoWidth) / 2;
+      break;
     case 'top-right':
       top = margin;
+      left = imageWidth - logoWidth - margin;
+      break;
+    case 'center-left':
+      top = (imageHeight - logoHeight) / 2;
+      left = margin;
+      break;
+    case 'center':
+      top = (imageHeight - logoHeight) / 2;
+      left = (imageWidth - logoWidth) / 2;
+      break;
+    case 'center-right':
+      top = (imageHeight - logoHeight) / 2;
       left = imageWidth - logoWidth - margin;
       break;
     case 'bottom-left':
       top = imageHeight - logoHeight - margin;
       left = margin;
       break;
+    case 'bottom-center':
+      top = imageHeight - logoHeight - margin;
+      left = (imageWidth - logoWidth) / 2;
+      break;
     case 'bottom-right':
       top = imageHeight - logoHeight - margin;
       left = imageWidth - logoWidth - margin;
-      break;
-    case 'center':
-      top = (imageHeight - logoHeight) / 2;
-      left = (imageWidth - logoWidth) / 2;
       break;
     default:
       top = margin;
