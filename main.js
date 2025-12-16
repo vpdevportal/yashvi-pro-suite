@@ -3,12 +3,43 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 
+// Set app name for macOS - must be set before app is ready
+if (process.platform === 'darwin') {
+  // Set the app name - this affects dock tooltip and app menu
+  // Note: In development mode, dock tooltip may still show "Electron" 
+  // because we're running from Electron.app bundle. This will be correct in packaged builds.
+  app.setName('Yashvi Pro Suite');
+  
+  // Also set the about panel options early
+  app.setAboutPanelOptions({
+    applicationName: 'Yashvi Pro Suite',
+    applicationVersion: app.getVersion() || '1.0.0',
+    copyright: 'Yashvi Pro Suite'
+  });
+}
+
 let mainWindow;
 
 function createWindow() {
+  // Set app icon - use .icns for macOS if available, otherwise PNG
+  let iconPath;
+  if (process.platform === 'darwin') {
+    // Try .icns first for macOS, fallback to PNG
+    const icnsPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.icns');
+    if (fs.existsSync(icnsPath)) {
+      iconPath = icnsPath;
+    } else {
+      iconPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.png');
+    }
+  } else {
+    iconPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.png');
+  }
+  
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: iconPath,
+    title: 'Yashvi Pro Suite',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -30,7 +61,29 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // Set dock icon and name for macOS
+  if (process.platform === 'darwin' && app.dock) {
+    const { nativeImage } = require('electron');
+    const iconPath = path.join(__dirname, 'public', 'assets', 'yashvi-logo.png');
+    if (fs.existsSync(iconPath)) {
+      const icon = nativeImage.createFromPath(iconPath);
+      if (!icon.isEmpty()) {
+        app.dock.setIcon(icon);
+      }
+    }
+    
+    // Try to set the badge (this sometimes helps with name display)
+    // app.dock.setBadge(''); // Uncomment if needed
+  }
+  
+  // Ensure app name is set (double-check after ready)
+  if (process.platform === 'darwin') {
+    app.setName('Yashvi Pro Suite');
+  }
+  
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
