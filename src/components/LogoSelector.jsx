@@ -22,11 +22,21 @@ const LogoSelector = ({
               className={`logo-card ${logo === builtInLogo.path ? 'logo-card-active' : ''}`}
               onClick={() => !processing && onSelectBuiltInLogo(builtInLogo.path)}
             >
-              <img
-                className="logo-card-image"
-                src={builtInLogo.thumbnail || ''}
-                alt={builtInLogo.name}
-              />
+              {builtInLogo.thumbnail ? (
+                <img
+                  className="logo-card-image"
+                  src={builtInLogo.thumbnail}
+                  alt={builtInLogo.name}
+                  onError={(e) => {
+                    console.error('Failed to load logo thumbnail:', builtInLogo.name, builtInLogo.path, builtInLogo.thumbnail?.substring(0, 50));
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="logo-card-placeholder">
+                  <span>{builtInLogo.name || 'Logo'}</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
