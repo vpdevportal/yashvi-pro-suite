@@ -349,11 +349,46 @@ ipcMain.handle('get-default-output-folder', async () => {
 // List built-in logos from resources/logos (with thumbnails)
 ipcMain.handle('get-built-in-logos', async () => {
   try {
-    const logosDir = path.join(__dirname, 'resources', 'logos');
+    // Try multiple possible locations for the logos directory
+    // In development: __dirname is the project root
+    // In production: __dirname is inside the app.asar or app.asar.unpacked
+    const possiblePaths = [
+      path.join(__dirname, 'resources', 'logos'), // Development (project root)
+      path.join(__dirname, 'build', 'resources', 'logos'), // Development (from build)
+      path.join(process.resourcesPath, 'resources', 'logos'), // Production (outside asar)
+      path.join(app.getAppPath(), 'resources', 'logos'), // Alternative production path
+      path.join(app.getAppPath(), 'build', 'resources', 'logos'), // Production (from build)
+    ];
+
+    let logosDir = null;
+    for (const possiblePath of possiblePaths) {
+      try {
+        if (fs.existsSync(possiblePath)) {
+          const stats = await fs.promises.stat(possiblePath);
+          if (stats.isDirectory()) {
+            logosDir = possiblePath;
+            break;
+          }
+        }
+      } catch {
+        // Continue to next path
+      }
+    }
+
+    if (!logosDir) {
+      console.log('No preset logos directory found. Users can still select custom logos.');
+      return [];
+    }
+
     const entries = await fs.promises.readdir(logosDir);
     const imageFiles = entries.filter((file) =>
-      file.match(/\.(png|jpe?g|webp|gif)$/i)
+      file.match(/\.(png|jpe?g|webp|gif|svg)$/i)
     );
+
+    if (imageFiles.length === 0) {
+      console.log('No preset logo images found in logos directory.');
+      return [];
+    }
 
     const logos = [];
     for (const file of imageFiles) {
@@ -361,18 +396,21 @@ ipcMain.handle('get-built-in-logos', async () => {
       let thumbnail = null;
       try {
         thumbnail = await getThumbnailDataUrl(fullPath, 200, true);
-      } catch {
+      } catch (error) {
+        console.warn(`Failed to generate thumbnail for ${file}:`, error.message);
         thumbnail = null;
       }
       logos.push({
-        name: file,
+        name: path.basename(file, path.extname(file)), // Name without extension
         path: fullPath,
         thumbnail
       });
     }
 
+    console.log(`Loaded ${logos.length} preset logo(s) from ${logosDir}`);
     return logos;
   } catch (error) {
+    console.error('Error loading built-in logos:', error);
     return [];
   }
 });
