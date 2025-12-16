@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Deploy script for Yashvi Pro Suite
-# Builds the macOS app and keeps it in the dist folder
+# Builds the macOS app and copies it to Applications folder
 
 set -euo pipefail
 
@@ -17,10 +17,11 @@ cd "$SCRIPT_DIR"
 
 APP_NAME="Yashvi Pro Suite"
 APP_PATH="dist/mac-arm64/${APP_NAME}.app"
+APPLICATIONS_PATH="/Applications/${APP_NAME}.app"
 
-echo -e "${GREEN}🚀 Starting build...${NC}"
+echo -e "${GREEN}🚀 Starting deployment...${NC}"
 
-# Build the app
+# Step 1: Build the app
 echo -e "${YELLOW}📦 Building macOS app...${NC}"
 npm run build:electron
 
@@ -31,6 +32,25 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 echo -e "${GREEN}✅ Build successful!${NC}"
-echo -e "${GREEN}📍 App location: ${SCRIPT_DIR}/${APP_PATH}${NC}"
-echo -e "${GREEN}🎉 Build complete!${NC}"
+
+# Step 2: Remove existing app from Applications if it exists
+if [ -d "$APPLICATIONS_PATH" ]; then
+    echo -e "${YELLOW}🗑️  Removing existing app from Applications...${NC}"
+    rm -rf "$APPLICATIONS_PATH"
+fi
+
+# Step 3: Copy app to Applications folder
+echo -e "${YELLOW}📋 Copying app to Applications folder...${NC}"
+cp -R "$APP_PATH" "$APPLICATIONS_PATH"
+
+# Step 4: Verify the copy
+if [ -d "$APPLICATIONS_PATH" ]; then
+    echo -e "${GREEN}✅ Successfully deployed to Applications folder!${NC}"
+    echo -e "${GREEN}📍 Location: ${APPLICATIONS_PATH}${NC}"
+else
+    echo -e "${RED}❌ Failed to copy app to Applications folder${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}🎉 Deployment complete!${NC}"
 
